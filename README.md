@@ -28,6 +28,7 @@ escaped.  Square brackets are still permitted in the url and it is preferred to 
 * [Property Views](#property-views)
 * [More Examples](#more-examples)
 * [Custom Integration](#custom-integration)
+* [Spring Boot Integration](#spring-boot-integration)
 * [Changing the Defaults](#changing-the-defaults)
 * [Metrics](#metrics)
 * [Limitations](#limitations)
@@ -56,13 +57,43 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ## <a name="installation"></a>Installation
 
-### Maven
+### Spring Boot
+
+If you are using Spring Boot 4+, just add the starter — no manual configuration needed:
+
+#### Gradle
+
+```kotlin
+implementation("com.github.ipregistry:squiggly-spring-boot-starter:2.0.0")
+```
+
+#### Maven
 
 ```xml
 <dependency>
-    <groupId>com.github.bohnman</groupId>
+    <groupId>com.github.ipregistry</groupId>
+    <artifactId>squiggly-spring-boot-starter</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+That's it. The starter auto-configures everything for both Spring MVC (servlet) and Spring WebFlux (reactive) applications. See [Spring Boot Integration](#spring-boot-integration) for configuration options.
+
+### Standalone / Other Frameworks
+
+#### Gradle
+
+```kotlin
+implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0")
+```
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>com.github.ipregistry</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
-    <version>1.3.18</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -617,12 +648,80 @@ You can find an example of using Squiggly Filter in a webapp under the [examples
 
 ### Spring Boot Web Application
 
-You can find an example of using Squiggly Filter in Spring Boot under the [examples/spring-boot](examples/spring-boot) directory.
+For Spring Boot 4+, the recommended approach is to use the `squiggly-spring-boot-starter` which auto-configures everything. See [Spring Boot Integration](#spring-boot-integration).
+
+You can find an example under the [examples/spring-boot](examples/spring-boot) directory.
 
 ### Dropwizard
 
 You can find an example of using Squiggly Filter in Dropwizard under the [examples/dropwizard](examples/dropwizard) directory.
 
+
+## <a name="spring-boot-integration"></a>Spring Boot Integration
+
+The `squiggly-spring-boot-starter` provides zero-config integration for Spring Boot 4+ applications. It supports both Spring MVC (servlet) and Spring WebFlux (reactive).
+
+### Zero Configuration
+
+Just add the starter dependency and annotate your application class:
+
+```java
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+Then filter fields via query parameter:
+
+```
+GET /issues?fields=id,assignee[firstName]
+```
+
+### Configuration Properties
+
+The following properties can be set in `application.properties` or `application.yml`:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `squiggly.enabled` | `true` | Enable/disable the Squiggly auto-configuration |
+| `squiggly.filter-parameter-name` | `fields` | Query parameter name used to specify the filter expression |
+| `squiggly.default-filter` | `null` | Default filter expression applied when no query parameter is provided |
+
+### Customizing Filter Expressions
+
+To programmatically transform filter expressions (e.g. wrapping with a parent field), define a `SquigglyFilterCustomizer` bean:
+
+```java
+@Bean
+SquigglyFilterCustomizer squigglyFilterCustomizer() {
+    return (filter, beanClass) -> {
+        if (filter != null && Page.class.isAssignableFrom(beanClass)) {
+            return "items[" + filter + "]";
+        }
+        return filter;
+    };
+}
+```
+
+### Custom Context Provider
+
+For full control over filtering logic, define your own `SquigglyContextProvider` bean. This replaces the auto-configured provider:
+
+```java
+@Bean
+SquigglyContextProvider squigglyContextProvider() {
+    return new RequestSquigglyContextProvider("fields", null) {
+        @Override
+        protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+            // your custom logic here
+            return filter;
+        }
+    };
+}
+```
 
 ## <a name="changing-the-defaults"></a>Changing Defaults
 

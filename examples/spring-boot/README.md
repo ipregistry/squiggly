@@ -1,13 +1,13 @@
 # Squiggly Filter Jackson Spring Boot Example
 
-This example shows how to use Squiggly Filter in a Spring Boot web environment.
+This example shows how to use Squiggly Filter in a Spring Boot web environment using the `squiggly-spring-boot-starter`.
 
-This example uses the Issue object described in the main documentation.
+The starter auto-configures everything — no manual bean definitions needed. This example uses the Issue object described in the main documentation.
 
-To run the example, cd to the examples/spring-boot directory on the command line type the following:
+To run the example, cd to the examples/spring-boot directory on the command line and type the following:
 
 ```bash
-mvn spring-boot:run
+../gradlew bootRun
 ```
 
 In another terminal, you can request the issue json by doing the following:
