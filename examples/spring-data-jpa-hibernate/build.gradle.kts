@@ -1,10 +1,10 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.4.3"
+    id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "org.springframework.boot"
+group = "com.github.bohnman.squiggly.example"
 version = "1.0-SNAPSHOT"
 
 java {

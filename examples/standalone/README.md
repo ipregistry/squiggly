@@ -8,10 +8,10 @@ To run the example, cd to the examples/standalone directory on the command line 
 
 1) To print the raw json
 ```bash
-mvn compile exec:java
+./gradlew run
 ```
 
 2) To filter the raw json
 ```bash
-mvn compile exec:java -Dexec.args='id,issueSummary'
+./gradlew run --args='id,issueSummary'
 ```

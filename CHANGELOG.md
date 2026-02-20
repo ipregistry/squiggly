@@ -154,7 +154,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Ability to retrieve metrics ([#2](https://github.com/bohnman/squiggly-filter-jackson/issues/2))
+- Ability to retrieve metrics
 - Ability to retrieve config and sources
 
 ## [1.1.1] - 2016-10-20
@@ -168,5 +168,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - JDK6+ support
-- Field specificity logic ([#1](https://github.com/bohnman/squiggly-filter-jackson/issues/1))
+- Field specificity logic
 - Ability to exclude fields

@@ -4,7 +4,7 @@ This example shows how to use Squiggly Filter with Spring Data Rest.
 
 
 ```bash
-mvn spring-boot:run
+./gradlew bootRun
 ```
 
 In another terminal, you can request the issue json by doing the following:

@@ -42,7 +42,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 - [ANTLR](http://www.antlr.org/)
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
-- [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 2.6+)
+- [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 3.0+)
 
 ## <a name="installation"></a>Installation
 

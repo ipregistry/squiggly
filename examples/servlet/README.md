@@ -7,7 +7,7 @@ This example uses the Issue object described in the main documentation.
 To run the example, cd to the examples/servlet directory on the command line type the following:
 
 ```bash
-mvn jetty:run
+./gradlew appRun
 ```
 
 In another terminal, you can request the issue json by doing the following:
