@@ -27,6 +27,21 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
     compileOnly("org.springframework:spring-webflux:7.0.0")
     compileOnly("io.micrometer:context-propagation:1.1.3")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation("org.springframework.boot:spring-boot-test:4.0.0")
+    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure:4.0.0")
+    testImplementation("org.springframework:spring-test:7.0.0")
+    testImplementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+    testImplementation("org.springframework:spring-webflux:7.0.0")
+    testImplementation("io.micrometer:context-propagation:1.1.3")
+    testImplementation("io.projectreactor:reactor-test:3.7.6")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 publishing {
