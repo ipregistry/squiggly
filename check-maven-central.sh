@@ -3,13 +3,13 @@
 version="$1"
 
 if [ "$version" == "" ]; then
-    version=$(perl -0777 -ne 'print $1 if /<artifactId>squiggly-filter-jackson<\/artifactId>.*?<version>(.*?)<\/version>/smg' README.md)
+    version=$(grep '^version = ' build.gradle.kts | sed 's/version = "\(.*\)"/\1/')
 fi
 
-echo -n "Checking Version $version: "
+echo -n "Checking Version $version on GitHub Packages: "
 
-status=$(curl -s -o /dev/null -I -w "%{http_code}" http://central.maven.org/maven2/com/github/bohnman/squiggly-filter-jackson/${version}/squiggly-filter-jackson-${version}.jar)
-
+status=$(curl -s -o /dev/null -I -w "%{http_code}" \
+    "https://maven.pkg.github.com/ipregistry/squiggly/com/github/ipregistry/squiggly-filter-jackson/${version}/squiggly-filter-jackson-${version}.jar")
 
 if [ "$status" == "" ]; then
     echo "Error Unknown"

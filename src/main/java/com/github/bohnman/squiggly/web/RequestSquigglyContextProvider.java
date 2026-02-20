@@ -3,12 +3,12 @@ package com.github.bohnman.squiggly.web;
 import com.github.bohnman.squiggly.context.provider.AbstractSquigglyContextProvider;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.google.common.base.MoreObjects;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Custom context provider that gets the filter expression from the request.
@@ -41,7 +41,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         String filter = cache.get(beanClass);
 
         if (filter == null) {
-            filter = MoreObjects.firstNonNull(getFilter(request), defaultFilter);
+            filter = Objects.requireNonNullElse(getFilter(request), defaultFilter);
             filter = customizeFilter(filter, request, beanClass);
             cache.put(beanClass, filter);
         }

@@ -5,13 +5,12 @@ import com.github.bohnman.squiggly.examples.dropwizard.web.IssueResource;
 import com.github.bohnman.squiggly.examples.dropwizard.web.ListResponse;
 import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
 import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
-import io.dropwizard.Application;
-import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.core.Application;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.EnumSet;
 
 public class IssueApplication extends Application<IssueConfiguration> {
@@ -26,8 +25,6 @@ public class IssueApplication extends Application<IssueConfiguration> {
 
     @Override
     public void initialize(Bootstrap<IssueConfiguration> bootstrap) {
-        bootstrap.setConfigurationSourceProvider(
-                new ResourceConfigurationSourceProvider());
     }
 
     @Override

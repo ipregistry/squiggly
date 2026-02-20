@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.context.provider;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.PropertyWriter;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 
 /**
@@ -27,8 +27,8 @@ public interface SquigglyContextProvider {
     boolean isFilteringEnabled();
 
     // Hook method for custom included serialization
-    void serializeAsIncludedField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception;
+    void serializeAsIncludedProperty(Object pojo, JsonGenerator jgen, SerializationContext provider, PropertyWriter writer) throws Exception;
 
     // Hook method for custom excluded serialization
-    void serializeAsExcludedField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception;
+    void serializeAsExcludedProperty(Object pojo, JsonGenerator jgen, SerializationContext provider, PropertyWriter writer) throws Exception;
 }

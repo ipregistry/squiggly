@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.examples.standalone;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.examples.standalone.model.Issue;
 
@@ -19,23 +20,23 @@ public class Application {
             model = Issue.findAll();
             filter = args[0];
         } else if (args.length == 2) {
-            model = new ObjectMapper().readValue(new File(args[0]), Object.class);
+            model = JsonMapper.builder().build().readValue(new File(args[0]), Object.class);
             filter = args[1];
         } else {
             printUsage();
             System.exit(1);
         }
 
-        ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), filter);
+        ObjectMapper objectMapper = Squiggly.init(JsonMapper.builder().build(), filter);
         objectMapper.writeValue(System.out, model);
     }
 
     private static void printUsage() {
-        String prefix = "mvn compile exec:java";
+        String prefix = "./gradlew run --args";
         String usage = "Usage:\n" +
                 prefix + '\n' +
-                prefix + " " + "-Dexec.args='filter'\n" +
-                prefix + " " + "-Dexec.args='json-file filter'\n";
+                prefix + " " + "'filter'\n" +
+                prefix + " " + "'json-file filter'\n";
 
         System.out.println(usage);
     }

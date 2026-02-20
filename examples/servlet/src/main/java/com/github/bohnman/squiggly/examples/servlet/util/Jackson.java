@@ -1,15 +1,16 @@
 package com.github.bohnman.squiggly.examples.servlet.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.examples.servlet.web.ListResponse;
 import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class Jackson {
 
-    private static final ObjectMapper OBJECT_MAPPER = Squiggly.init(new ObjectMapper(), new RequestSquigglyContextProvider() {
+    private static final ObjectMapper OBJECT_MAPPER = Squiggly.init(JsonMapper.builder().build(), new RequestSquigglyContextProvider() {
         @Override
         protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
 

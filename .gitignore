@@ -1,8 +1,10 @@
 .DS_STORE
 .idea/
-target/
 *.iml
-/pom.xml.versionsBackup
-src/generated/
 .project
 bin/
+
+# Gradle
+.gradle/
+build/
+src/generated/

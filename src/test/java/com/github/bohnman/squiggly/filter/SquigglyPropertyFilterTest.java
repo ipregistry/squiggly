@@ -1,32 +1,32 @@
 package com.github.bohnman.squiggly.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ser.std.SimpleFilterProvider;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.model.*;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
-import com.google.common.base.Charsets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("Duplicates")
 public class SquigglyPropertyFilterTest {
@@ -34,27 +34,27 @@ public class SquigglyPropertyFilterTest {
     public static final String BASE_PATH = "com/github/bohnman/squiggly/SquigglyPropertyFilterTest";
     private Issue issue;
     private ObjectMapper objectMapper;
-    private SimpleFilterProvider filterProvider;
     private boolean init = false;
-    private ObjectMapper rawObjectMapper = new ObjectMapper();
+    private ObjectMapper rawObjectMapper = JsonMapper.builder()
+            .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+            .build();
 
-    public SquigglyPropertyFilterTest() {
-        rawObjectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
-    }
-
-    @Before
+    @BeforeEach
     public void beforeEachTest() {
         if (!init) {
             issue = buildIssue();
-            objectMapper = new ObjectMapper();
-            filterProvider = new SimpleFilterProvider();
-            objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
-            objectMapper.setFilterProvider(filterProvider);
-            objectMapper.addMixIn(Object.class, SquigglyPropertyFilterMixin.class);
             init = true;
         }
 
-        filterProvider.removeFilter(SquigglyPropertyFilter.FILTER_ID);
+        // Rebuild objectMapper for each test with a fresh filter provider
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        objectMapper = JsonMapper.builder()
+                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                .filterProvider(filterProvider)
+                .addMixIn(Object.class, SquigglyPropertyFilterMixin.class)
+                .build();
     }
 
     private Issue buildIssue() {
@@ -77,38 +77,53 @@ public class SquigglyPropertyFilterTest {
         return issue;
     }
 
+    private void assertJsonEquals(String expected, String actual) {
+        JsonNode expectedTree = rawObjectMapper.readTree(expected);
+        JsonNode actualTree = rawObjectMapper.readTree(actual);
+        assertEquals(expectedTree, actualTree);
+    }
 
     @Test
     public void testAnyDeep() {
         filter("**");
-        assertEquals(stringifyRaw(), stringify());
+        assertJsonEquals(stringifyRaw(), stringify());
     }
 
     @Test
     public void testAnyShallow() {
         filter("*");
-        String raw = regexRemove(stringifyRaw(), ",\"userId\":\"[a-zA-Z0-9-_]+\"");
-        raw = regexRemove(raw, ",\"user\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
-        assertEquals(raw, stringify());
+        // * includes base fields but not @FullView fields (entityType, user)
+        assertJsonEquals(
+                "{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\"," +
+                "\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"}," +
+                "\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}," +
+                "\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\"},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\"}]," +
+                "\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}",
+                stringify());
     }
 
     @Test
     public void testBaseView() {
         filter("base");
-        String raw = regexRemove(stringifyRaw(), ",\"actions\":.*") + "}";
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
-        assertEquals(raw, stringify());
+        // base view includes only base fields, no @FullView fields
+        assertJsonEquals(
+                "{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\"," +
+                "\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"}," +
+                "\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}",
+                stringify());
     }
 
     @Test
     public void testFullView() {
         filter("full");
-        String raw = regexRemove(stringifyRaw(), ",\"userId\":\"[a-zA-Z0-9-_]+\"");
-        raw = regexRemove(raw, ",\"user\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
-
-        assertEquals(raw, stringify());
+        // full view includes base + @FullView fields (actions, properties), but not @FullView nested (user, entityType)
+        assertJsonEquals(
+                "{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\"," +
+                "\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"}," +
+                "\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}," +
+                "\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\"},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\"}]," +
+                "\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}",
+                stringify());
     }
 
     @Test
@@ -120,98 +135,98 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testSingleField() {
         filter("id");
-        assertEquals("{\"id\":\"" + issue.getId() + "\"}", stringify());
+        assertJsonEquals("{\"id\":\"" + issue.getId() + "\"}", stringify());
     }
 
     @Test
     public void testMultipleFields() {
         filter("id,issueSummary");
-        assertEquals("{\"id\":\"" + issue.getId() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+        assertJsonEquals("{\"id\":\"" + issue.getId() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
 
     @Test
     public void testRegex() {
         filter("~iss[a-z]e.*~");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
     }
 
     @Test
     public void testRegexCaseInsensitive() {
         filter("~iss[a-z]esumm.*~i");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
 
     @Test
     public void testRegexTraditional() {
         filter("/iss[a-z]e.*/");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
     }
 
     @Test
     public void testWildCardSingle() {
         filter("issueSummar?");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
 
     @Test
     public void testWildCardStart() {
         filter("issue*");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
     }
 
     @Test
     public void testWildCardEnd() {
         filter("*d");
-        assertEquals("{\"id\":\"" + issue.getId() + "\"}", stringify());
+        assertJsonEquals("{\"id\":\"" + issue.getId() + "\"}", stringify());
     }
 
     @Test
     public void testWildCardMiddle() {
         filter("*ue*");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertJsonEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
     }
 
 
     @Test
     public void testDotPath() {
         filter("id,actions.user.firstName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
+        assertJsonEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
     }
 
     @Test
     public void testNegativeDotPath() {
         filter("id,-actions.user.firstName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"lastName\":\"Naharis\"}}]}", stringify());
+        assertJsonEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"lastName\":\"Naharis\"}}]}", stringify());
     }
 
     @Test
     public void testNegativeDotPaths() {
         filter("-actions.user.firstName,-actions.user.lastName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{}}]}", stringify());
+        assertJsonEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{}}]}", stringify());
     }
 
     @Test
     public void testNestedDotPath() {
         filter("id,actions.user[firstName],issueSummary");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
+        assertJsonEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
 
         filter("id,actions.user[]");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{}},{\"user\":{}}]}", stringify());
+        assertJsonEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{}},{\"user\":{}}]}", stringify());
     }
 
     @Test
     public void testDeepNestedDotPath() {
         filter("id,items.items[items.id]");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-4\"}]}]}]}", stringify(Item.testItem()));
+        assertJsonEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-4\"}]}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items[items.items[id]]");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-5\"}]}]}]}]}", stringify(Item.testItem()));
+        assertJsonEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-5\"}]}]}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items[-items.id]");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"name\":\"Milkshake\",\"items\":[{\"name\":\"Hoverboard\",\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+        assertJsonEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"name\":\"Milkshake\",\"items\":[{\"name\":\"Hoverboard\",\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items[items[-id,-name],id]");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+        assertJsonEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
 
         fileTest("company-list.json", "deep-nested-01-filter.txt", "deep-nested-01-expected.json");
         fileTest("task-list.json", "deep-nested-02-filter.txt", "deep-nested-02-expected.json");
@@ -221,102 +236,106 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testOtherView() {
         filter("other");
-        String raw = regexRemove(stringifyRaw(), ",\"user\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"properties\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
-        assertEquals(raw, stringify());
+        // other view includes base + @OtherView fields (actions), but not @FullView-only fields
+        // Note: user is @FullView only, so excluded. properties is @OtherView, so excluded (it's view1 not other)
+        assertJsonEquals(
+                "{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\"," +
+                "\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"}," +
+                "\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}," +
+                "\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\"},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\"}]}",
+                stringify());
     }
 
     @Test
     public void testNestedEmpty() {
         filter("assignee[]");
-        assertEquals("{\"assignee\":{}}", stringify());
+        assertJsonEquals("{\"assignee\":{}}", stringify());
     }
 
     @Test
     public void testAssignee() {
         filter("assignee");
-        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+        assertJsonEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
     }
 
     @Test
     public void testNestedSingle() {
         filter("assignee[firstName]");
-        assertEquals("{\"assignee\":{\"firstName\":\"" + issue.getAssignee().getFirstName() + "\"}}", stringify());
+        assertJsonEquals("{\"assignee\":{\"firstName\":\"" + issue.getAssignee().getFirstName() + "\"}}", stringify());
     }
 
     @Test
     public void testNestedMultiple() {
         filter("actions[type,text]");
-        assertEquals("{\"actions\":[{\"type\":\"" + issue.getActions().get(0).getType() + "\",\"text\":\"" + issue.getActions().get(0).getText() + "\"},{\"type\":\"" + issue.getActions().get(1).getType() + "\",\"text\":\"" + issue.getActions().get(1).getText() + "\"}]}", stringify());
+        assertJsonEquals("{\"actions\":[{\"type\":\"" + issue.getActions().get(0).getType() + "\",\"text\":\"" + issue.getActions().get(0).getText() + "\"},{\"type\":\"" + issue.getActions().get(1).getType() + "\",\"text\":\"" + issue.getActions().get(1).getText() + "\"}]}", stringify());
     }
 
     @Test
     public void testMultipleNestedSingle() {
         filter("(reporter,assignee)[lastName]");
-        assertEquals("{\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"},\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"}}", stringify());
+        assertJsonEquals("{\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"},\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"}}", stringify());
     }
 
     @Test
     public void testNestedMap() {
         filter("properties[priority]");
-        assertEquals("{\"properties\":{\"priority\":\"" + issue.getProperties().get("priority") + "\"}}", stringify());
+        assertJsonEquals("{\"properties\":{\"priority\":\"" + issue.getProperties().get("priority") + "\"}}", stringify());
     }
 
     @Test
     public void testDeepNested() {
         filter("actions[user[lastName]]");
-        assertEquals("{\"actions\":[{\"user\":{\"lastName\":\"" + issue.getActions().get(0).getUser().getLastName() + "\"}},{\"user\":{\"lastName\":\"" + issue.getActions().get(1).getUser().getLastName() + "\"}}]}", stringify());
+        assertJsonEquals("{\"actions\":[{\"user\":{\"lastName\":\"" + issue.getActions().get(0).getUser().getLastName() + "\"}},{\"user\":{\"lastName\":\"" + issue.getActions().get(1).getUser().getLastName() + "\"}}]}", stringify());
     }
 
     @Test
     public void testSameParent() {
         filter("assignee[firstName],assignee[lastName]");
-        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+        assertJsonEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
 
         filter("assignee.firstName,assignee.lastName");
-        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+        assertJsonEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
 
         filter("actions.user[firstName],actions.user[lastName]");
-        assertEquals("{\"actions\":[{\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}},{\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\"}}]}", stringify());
+        assertJsonEquals("{\"actions\":[{\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}},{\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\"}}]}", stringify());
     }
 
     @Test
     public void testFilterExcludesBaseFieldsInView() {
-        String fieldName = "filterImplicitlyIncludeBaseFieldsInView";
+        boolean original = SquigglyConfig.isFilterImplicitlyIncludeBaseFieldsInView();
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(SquigglyConfig.class, "filterImplicitlyIncludeBaseFieldsInView", false);
             filter("view1");
-            assertEquals("{\"properties\":" + stringifyRaw(issue.getProperties()) + "}", stringify());
+            assertJsonEquals("{\"properties\":" + stringifyRaw(issue.getProperties()) + "}", stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(SquigglyConfig.class, "filterImplicitlyIncludeBaseFieldsInView", original);
         }
     }
 
     @Test
     public void testPropagateViewToNestedFilters() {
-        String fieldName = "filterPropagateViewToNestedFilters";
+        boolean original = SquigglyConfig.isFilterPropagateViewToNestedFilters();
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(SquigglyConfig.class, "filterPropagateViewToNestedFilters", true);
             filter("full");
-            assertEquals(stringifyRaw(), stringify());
+            assertJsonEquals(stringifyRaw(), stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(SquigglyConfig.class, "filterPropagateViewToNestedFilters", original);
         }
     }
 
     @Test
     public void testPropertyAddNonAnnotatedFieldsToBaseView() {
-        String fieldName = "propertyAddNonAnnotatedFieldsToBaseView";
+        boolean original = SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView();
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(SquigglyConfig.class, "propertyAddNonAnnotatedFieldsToBaseView", false);
             filter("base");
             assertEquals("{}", stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(SquigglyConfig.class, "propertyAddNonAnnotatedFieldsToBaseView", original);
         }
     }
 
@@ -324,90 +343,80 @@ public class SquigglyPropertyFilterTest {
     public void testFilterSpecificty() {
         filter("**,reporter[lastName,entityType]");
         String raw = stringifyRaw();
-        assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+        // Verify reporter only has lastName and entityType (firstName excluded)
+        JsonNode rawTree = rawObjectMapper.readTree(raw);
+        JsonNode actualTree = rawObjectMapper.readTree(stringify());
+        // All fields same as raw, except reporter is missing firstName
+        assertEquals(rawTree.get("id"), actualTree.get("id"));
+        assertEquals(rawTree.get("actions"), actualTree.get("actions"));
+        assertEquals(rawTree.get("assignee"), actualTree.get("assignee"));
+        assertEquals(rawTree.get("properties"), actualTree.get("properties"));
+        assertEquals(rawTree.get("reporter").get("lastName"), actualTree.get("reporter").get("lastName"));
+        assertEquals(null, actualTree.get("reporter").get("firstName"));
 
         filter("**,repo*[lastName,entityType],repo*[firstName,entityType]");
-        assertEquals(raw, stringify());
+        assertJsonEquals(raw, stringify());
 
         filter("**,reporter[lastName,entityType],repo*[firstName,entityType]");
-        assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+        actualTree = rawObjectMapper.readTree(stringify());
+        assertEquals(null, actualTree.get("reporter").get("firstName"));
+        assertEquals(rawTree.get("reporter").get("lastName"), actualTree.get("reporter").get("lastName"));
 
         filter("**,repo*[firstName,entityType],rep*[lastName,entityType]");
-        assertEquals(raw.replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
+        actualTree = rawObjectMapper.readTree(stringify());
+        assertEquals(rawTree.get("reporter").get("firstName"), actualTree.get("reporter").get("firstName"));
+        assertEquals(null, actualTree.get("reporter").get("lastName"));
 
         filter("**,reporter[firstName,entityType],reporter[lastName,entityType]");
-        assertEquals(raw, stringify());
+        assertJsonEquals(raw, stringify());
     }
 
     @Test
     public void testFilterExclusion() {
         filter("**,reporter[-firstName]");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}", stringify());
+        assertJsonEquals(
+                "{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\"," +
+                "\"reporter\":{\"lastName\":\"Targaryen\"}," +
+                "\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}," +
+                "\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}}," +
+                "{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}]," +
+                "\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}",
+                stringify());
     }
 
     @Test
     public void testJsonUnwrapped() {
         filter("innerText");
-        assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
+        assertJsonEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
     }
 
     @Test
     public void testPropertyWithDash() {
         filter("full-name");
-        assertEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
+        assertJsonEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
     }
 
     private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {
-        Field field = getField(ownerClass, fieldName);
-        try {
-            field.setBoolean(null, value);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void removeFinalModifier(Field field) {
-        try {
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Field getField(Class<?> ownerClass, String fieldName) {
         try {
             Field field = ownerClass.getDeclaredField(fieldName);
             field.setAccessible(true);
-            removeFinalModifier(field);
-            return field;
-        } catch (NoSuchFieldException e) {
+            field.setBoolean(null, value);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String regexRemove(String input, String regex) {
-        Matcher matcher = regex(input, regex);
-        StringBuffer sb = new StringBuffer();
-
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, "");
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
-    }
-
-    private Matcher regex(String input, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        return pattern.matcher(input);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     private String filter(String filter) {
         SquigglyParser parser = new SquigglyParser();
         SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(parser, filter);
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(provider));
+
+        objectMapper = objectMapper.rebuild()
+                .filterProvider(filterProvider)
+                .build();
+
         return filter;
     }
 
@@ -433,15 +442,11 @@ public class SquigglyPropertyFilterTest {
         String filter = readFile(BASE_PATH + "/tests/" + filterFile);
         String expected = readFile(BASE_PATH + "/tests/" + expectedFile);
 
-        try {
-            Object inputObject = rawObjectMapper.readValue(input, Object.class);
-            Object expectedObject = rawObjectMapper.readValue(expected, Object.class);
+        Object inputObject = rawObjectMapper.readValue(input, Object.class);
+        Object expectedObject = rawObjectMapper.readValue(expected, Object.class);
 
-            filter(sanitizeFilter(filter));
-            assertEquals(stringifyRaw(expectedObject), stringify(inputObject));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        filter(sanitizeFilter(filter));
+        assertJsonEquals(stringifyRaw(expectedObject), stringify(inputObject));
     }
 
     private String readFile(String path) {
@@ -452,7 +457,7 @@ public class SquigglyPropertyFilterTest {
         }
 
         try {
-            return new String(Files.readAllBytes(Paths.get(resource.toURI())), Charsets.UTF_8);
+            return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }

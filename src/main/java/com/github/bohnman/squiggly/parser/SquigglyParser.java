@@ -12,7 +12,7 @@ import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +55,7 @@ public class SquigglyParser {
         }
 
 
-        SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(new ANTLRInputStream(filter)));
+        SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(CharStreams.fromString(filter)));
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
         Visitor visitor = new Visitor();

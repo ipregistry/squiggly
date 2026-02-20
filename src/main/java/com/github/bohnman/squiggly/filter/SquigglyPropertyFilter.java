@@ -1,11 +1,11 @@
 package com.github.bohnman.squiggly.filter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.TokenStreamContext;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.BeanPropertyWriter;
+import tools.jackson.databind.ser.PropertyWriter;
+import tools.jackson.databind.ser.std.SimpleBeanPropertyFilter;
 import com.github.bohnman.squiggly.bean.BeanInfo;
 import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
@@ -31,7 +31,7 @@ import java.util.Set;
 
 
 /**
- * A Jackson @{@link com.fasterxml.jackson.databind.ser.PropertyFilter} that filters objects using squiggly syntax.
+ * A Jackson @{@link tools.jackson.databind.ser.PropertyFilter} that filters objects using squiggly syntax.
  * <p>Here are some examples of squiggly syntax:</p>
  * <pre>
  *    // grab the id and name fields
@@ -78,6 +78,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     private static final SquigglyMetricsSource METRICS_SOURCE;
     private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), Collections.<SquigglyNode>emptyList(), false, true, false));
 
+    /**
+     * Thread-local stack tracking the current serialization path. Each call to
+     * {@link #serializeAsProperty} pushes a {@link PathElement} before filtering
+     * and pops it after serialization completes. This provides a format-agnostic
+     * way to build the path, working with JSON, XML, and other Jackson formats.
+     */
+    private static final ThreadLocal<LinkedList<PathElement>> PATH_STACK = ThreadLocal.withInitial(LinkedList::new);
+
     static {
         MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
         METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", MATCH_CACHE);
@@ -107,26 +115,32 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     // create a path structure representing the object graph
-    private Path getPath(PropertyWriter writer, JsonStreamContext sc) {
+    private Path getPath(PropertyWriter writer, TokenStreamContext sc) {
         LinkedList<PathElement> elements = new LinkedList<>();
 
         if (sc != null) {
-            elements.add(new PathElement(writer.getName(), sc.getCurrentValue()));
-            sc = sc.getParent();
-        }
+            if (sc.currentValue() != null) {
+                // Stream context carries values (e.g. JSON) — use it directly
+                elements.add(new PathElement(writer.getName(), sc.currentValue()));
+                sc = sc.getParent();
 
-        while (sc != null) {
-            if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
-                elements.addFirst(new PathElement(sc.getCurrentName(), sc.getCurrentValue()));
+                while (sc != null) {
+                    if (sc.currentName() != null && sc.currentValue() != null) {
+                        elements.addFirst(new PathElement(sc.currentName(), sc.currentValue()));
+                    }
+                    sc = sc.getParent();
+                }
+            } else {
+                // Stream context lacks values (e.g. XML) — use the ThreadLocal path stack
+                elements.addAll(PATH_STACK.get());
             }
-            sc = sc.getParent();
         }
 
         return new Path(elements);
     }
 
-    private JsonStreamContext getStreamContext(JsonGenerator jgen) {
-        return jgen.getOutputContext();
+    private TokenStreamContext getStreamContext(JsonGenerator jgen) {
+        return jgen.streamWriteContext();
     }
 
     @Override
@@ -145,13 +159,18 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return true;
         }
 
-        JsonStreamContext streamContext = getStreamContext(jgen);
+        TokenStreamContext streamContext = getStreamContext(jgen);
 
         if (streamContext == null) {
             return true;
         }
 
         Path path = getPath(writer, streamContext);
+
+        if (path.getElements().isEmpty()) {
+            return true;
+        }
+
         SquigglyContext context = contextProvider.getContext(path.getFirst().getBeanClass());
         String filter = context.getFilter();
 
@@ -333,12 +352,18 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     @Override
-    public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
+    public void serializeAsProperty(final Object pojo, final JsonGenerator jgen, final SerializationContext provider,
                                  final PropertyWriter writer) throws Exception {
-        if (include(writer, jgen)) {
-            contextProvider.serializeAsIncludedField(pojo, jgen, provider, writer);
-        } else if (!jgen.canOmitFields()) {
-            contextProvider.serializeAsExcludedField(pojo, jgen, provider, writer);
+        LinkedList<PathElement> stack = PATH_STACK.get();
+        stack.addLast(new PathElement(writer.getName(), pojo));
+        try {
+            if (include(writer, jgen)) {
+                contextProvider.serializeAsIncludedProperty(pojo, jgen, provider, writer);
+            } else if (!jgen.canOmitProperties()) {
+                contextProvider.serializeAsExcludedProperty(pojo, jgen, provider, writer);
+            }
+        } finally {
+            stack.removeLast();
         }
     }
 

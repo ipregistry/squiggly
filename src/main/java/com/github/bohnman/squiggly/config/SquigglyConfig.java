@@ -1,7 +1,5 @@
 package com.github.bohnman.squiggly.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.ImmutableSortedMap;
@@ -26,10 +24,10 @@ public class SquigglyConfig {
     private static final SortedMap<String, String> PROPS_MAP;
     private static final SortedMap<String, String> SOURCE_MAP;
 
-    private static final boolean filterImplicitlyIncludeBaseFields;
-    private static final boolean filterImplicitlyIncludeBaseFieldsInView;
+    private static boolean filterImplicitlyIncludeBaseFields;
+    private static boolean filterImplicitlyIncludeBaseFieldsInView;
     private static final CacheBuilderSpec filterPathCacheSpec;
-    private static final boolean filterPropagateViewToNestedFilters;
+    private static boolean filterPropagateViewToNestedFilters;
 
     private static final CacheBuilderSpec parserNodeCacheSpec;
 

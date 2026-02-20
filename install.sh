@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mvn -Dgpg.skip install
+./gradlew build publishToMavenLocal

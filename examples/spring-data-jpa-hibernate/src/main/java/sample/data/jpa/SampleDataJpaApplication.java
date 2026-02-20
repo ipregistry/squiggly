@@ -16,57 +16,48 @@
 
 package sample.data.jpa;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ser.PropertyWriter;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
 import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
-import com.google.common.collect.Iterables;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
 public class SampleDataJpaApplication {
 
     @Bean
-    public FilterRegistrationBean squigglyRequestFilter() {
-        FilterRegistrationBean filter = new FilterRegistrationBean();
+    public FilterRegistrationBean<SquigglyRequestFilter> squigglyRequestFilter() {
+        FilterRegistrationBean<SquigglyRequestFilter> filter = new FilterRegistrationBean<>();
         filter.setFilter(new SquigglyRequestFilter());
         filter.setOrder(1);
         return filter;
     }
 
-    public static void main(String[] args) throws Exception {
-        ConfigurableApplicationContext context = SpringApplication.run(SampleDataJpaApplication.class, args);
-
-        Iterable<ObjectMapper> objectMappers = context.getBeansOfType(ObjectMapper.class)
-                .values();
-
-        objectMappers.forEach(mapper -> mapper.registerModule(new Hibernate5Module()));
-
-        Squiggly.init(objectMappers, new RequestSquigglyContextProvider() {
+    @Bean
+    public ObjectMapper squigglyObjectMapper() {
+        return Squiggly.init(JsonMapper.builder().build(), new RequestSquigglyContextProvider() {
             @Override
-            public void serializeAsIncludedField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+            public void serializeAsIncludedProperty(Object pojo, JsonGenerator jgen, SerializationContext provider, PropertyWriter writer) throws Exception {
                 if (isFilteringEnabled()) {
                     Object value = writer.getMember().getValue(pojo);
 
                     if (value instanceof PersistentCollection) {
-                        ((PersistentCollection) value).forceInitialization();
+                        ((PersistentCollection<?>) value).forceInitialization();
                     }
                 }
 
-                super.serializeAsIncludedField(pojo, jgen, provider, writer);
+                super.serializeAsIncludedProperty(pojo, jgen, provider, writer);
             }
 
             @Override
@@ -79,16 +70,10 @@ public class SampleDataJpaApplication {
                 return filter;
             }
         });
+    }
 
-
-        ObjectMapper objectMapper = Iterables.getFirst(objectMappers, null);
-
-        // Enable Squiggly for Jackson message converter
-        if (objectMapper != null) {
-            for (MappingJackson2HttpMessageConverter converter : context.getBeansOfType(MappingJackson2HttpMessageConverter.class).values()) {
-                converter.setObjectMapper(objectMapper);
-            }
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(SampleDataJpaApplication.class, args);
     }
 
 }
