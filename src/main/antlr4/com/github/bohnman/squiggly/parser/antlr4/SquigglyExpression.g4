@@ -30,13 +30,11 @@ negated_expression
     ;
 
 nested_expression
-    : LSQUIGGLY expression_list RSQUIGGLY
-    | LBRACE expression_list RBRACE
+    : LBRACE expression_list RBRACE
     ;
 
 empty_nested_expression
-    : LSQUIGGLY RSQUIGGLY
-    | LBRACE RBRACE
+    : LBRACE RBRACE
     ;
 
 deep
@@ -64,7 +62,7 @@ regex_field
     ;
 
 regex_pattern
-    : ('.' | '|' | ',' | LSQUIGGLY | RSQUIGGLY | LBRACE | RBRACE | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
+    : ('.' | '|' | ',' | LBRACE | RBRACE | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
     ;
 
 regex_flag
@@ -108,14 +106,6 @@ LBRACE
 
 RBRACE
     : ']'
-    ;
-
-LSQUIGGLY
-    : '{'
-    ;
-
-RSQUIGGLY
-    : '}'
     ;
 
 IDENTIFIER

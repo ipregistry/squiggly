@@ -3,15 +3,3 @@ companyList.directorsDetails,
 companyList.type,
 -companyList.companySubGroupNames.companySubGrpGivenNames.createdDate,
 -companyList.directorsDetails.qualifications
-
-#companyList {
-#    companySubGroupNames {
-#        companySubGrpGivenNames {
-#            -createdDate
-#        }
-#    },
-#    directorsDetails {
-#        -qualifications
-#    },
-#    type
-#}

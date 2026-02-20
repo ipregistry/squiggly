@@ -1,14 +1,3 @@
-## Important Note
-
-As of version 1.3.2, the preferred way to specify nested filters is to use square brackets intead of braces.
-
-Preferred: `assignee[firstName]`
-
-No longer Preferred but will still work: `assignee{firstName}`
-
-The reason for this is that newer versions of Tomcat no longer allow braces to be specified on the url without being
-escaped.  Square brackets are still permitted in the url and it is preferred to make the syntax url friendly.
-
 # Squiggly Filter For Jackson
 
 ## Contents
@@ -100,7 +89,7 @@ implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0")
 ## <a name="general-usage"></a>General Usage
 
 ```java
-ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee{firstName}");
+ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee[firstName]");
 Issue object = new Issue();         // replace this with your object/collection/map here
 System.out.println(SquigglyUtils.stringify(objectMapper, object));
 ```
@@ -123,7 +112,7 @@ System.out.println(SquigglyUtils.stringify(objectMapper, object));
 Also, you can generate a Plain Old Java Object (POJO) instead of a JSON String
 
 ```java
-ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee{firstName}");
+ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee[firstName]");
 System.out.println(SquigglyUtils.objectify(objectMapper, object, Object.class));
 ```
 
@@ -281,7 +270,7 @@ String filter = "actions[text,type]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"type":"COMMENT","text":"I'm going to let Daario get this one.."},{"type":"CLOSE","text":"All set."}]}
-// NOTE: use can also use wildcards (e.g. actions{t*})
+// NOTE: you can also use wildcards (e.g. actions[t*])
 ```
 
 ### Select Same Field From Different Nested Objects
@@ -305,7 +294,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 
 ## <a name="dot-syntax"></a>Dot Syntax
 
-As an alternative to using the braces syntax for nested filter, you can use the dot syntax
+As an alternative to using the bracket syntax for nested filter, you can use the dot syntax
 
 ```java
 String filter = "assignee.firstName";
@@ -558,7 +547,7 @@ There are more examples in the test directory.
 
 Imagine you are building a webapp where you want to specify the fields on the querystring.
  
-E.g. `/some/path?fields=a,b{c} ``
+E.g. `/some/path?fields=a,b[c]`
 
 You'll notice in all of our examples, we passed in a filter expression that never changes.  This doesn't
 work well for the case of specifying filters on a querystring.
@@ -616,7 +605,7 @@ public Page<Issue> findIssues(String query, int pageNumber, int pageSize) {
 In order to get specify the issue property, you now have to wrap all filters with items[] like so:
  
 ```
-GET /issues?fields=items{id}&query=some-query&&pageNumber=1&pageSize=10
+GET /issues?fields=items[id]&query=some-query&&pageNumber=1&pageSize=10
 ``` 
 
 This is kind of annoying.  Fortunately, we can avoid this inconvenience by using a hook method in RequestSquigglyContextProvider.
