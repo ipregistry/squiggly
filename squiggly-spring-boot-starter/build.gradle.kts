@@ -21,23 +21,23 @@ repositories {
 dependencies {
     api(rootProject)
 
-    implementation("org.springframework.boot:spring-boot-autoconfigure:4.0.0")
-    implementation("org.springframework.boot:spring-boot-jackson:4.0.0")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:4.0.3")
+    implementation("org.springframework.boot:spring-boot-jackson:4.0.3")
 
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
-    compileOnly("org.springframework:spring-webflux:7.0.0")
-    compileOnly("io.micrometer:context-propagation:1.1.3")
+    compileOnly("org.springframework:spring-webflux:7.0.5")
+    compileOnly("io.micrometer:context-propagation:1.2.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.assertj:assertj-core:3.27.3")
-    testImplementation("org.springframework.boot:spring-boot-test:4.0.0")
-    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure:4.0.0")
-    testImplementation("org.springframework:spring-test:7.0.0")
+    testImplementation("org.assertj:assertj-core:3.27.7")
+    testImplementation("org.springframework.boot:spring-boot-test:4.0.3")
+    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure:4.0.3")
+    testImplementation("org.springframework:spring-test:7.0.5")
     testImplementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
-    testImplementation("org.springframework:spring-webflux:7.0.0")
-    testImplementation("io.micrometer:context-propagation:1.1.3")
-    testImplementation("io.projectreactor:reactor-test:3.7.6")
+    testImplementation("org.springframework:spring-webflux:7.0.5")
+    testImplementation("io.micrometer:context-propagation:1.2.1")
+    testImplementation("io.projectreactor:reactor-test:3.8.3")
 }
 
 tasks.test {
