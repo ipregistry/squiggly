@@ -38,7 +38,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ## <a name="prerequisites"></a>Requirements
 
-- Java 7+
+- Java 21+
 - [ANTLR](http://www.antlr.org/)
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
