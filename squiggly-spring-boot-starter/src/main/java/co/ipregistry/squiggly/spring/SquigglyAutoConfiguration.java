@@ -6,6 +6,8 @@ import co.ipregistry.squiggly.filter.SquigglyPropertyFilterMixin;
 import co.ipregistry.squiggly.web.RequestSquigglyContextProvider;
 import co.ipregistry.squiggly.web.SquigglyRequestFilter;
 import io.micrometer.context.ContextRegistry;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -34,6 +36,18 @@ import tools.jackson.dataformat.xml.XmlMapper;
 @ConditionalOnProperty(prefix = "squiggly", name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties(SquigglyProperties.class)
 public class SquigglyAutoConfiguration {
+
+    private static final Log LOG = LogFactory.getLog(SquigglyAutoConfiguration.class);
+
+    public SquigglyAutoConfiguration(SquigglyProperties properties) {
+        String defaultFilter = properties.getDefaultFilter();
+        String defaultFilterDisplay = defaultFilter != null && !defaultFilter.isBlank()
+                ? "\"" + defaultFilter + "\""
+                : "none";
+        LOG.info("Squiggly field filtering enabled (parameter: \""
+                + properties.getFilterParameterName() + "\", default filter: "
+                + defaultFilterDisplay + ")");
+    }
 
     @Bean
     JsonMapperBuilderCustomizer squigglyJsonMapperCustomizer(SquigglyContextProvider provider) {
