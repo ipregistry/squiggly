@@ -17,6 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Hooks;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ser.std.SimpleFilterProvider;
 
@@ -87,6 +88,7 @@ public class SquigglyAutoConfiguration {
         SquigglyFilterThreadLocalAccessor squigglyFilterThreadLocalAccessor() {
             SquigglyFilterThreadLocalAccessor accessor = new SquigglyFilterThreadLocalAccessor();
             ContextRegistry.getInstance().registerThreadLocalAccessor(accessor);
+            Hooks.enableAutomaticContextPropagation();
             return accessor;
         }
     }
