@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "co.ipregistry"
-version = "2.0.0-SNAPSHOT"
+version = "2.0.0"
 
 java {
     toolchain {
@@ -79,8 +79,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/ipregistry/squiggly")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String? ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String? ?: ""
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GH_PACKAGES_USER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GH_PACKAGES_WRITE_TOKEN")
             }
         }
     }
