@@ -3,7 +3,6 @@
 ## Contents
 
 * [What is it?](#what-is-it)
-* [Prerequisites](#prerequisites)
 * [Installation](#installation)
 * [General Usage](#general-usage)
 * [Reference Object](#reference-object)
@@ -35,14 +34,6 @@ Probably the most common use of this library is to filter fields on the querystr
 ```
 
 Integrating Squiggly into your webapp is covered in [Custom Integration](#custom-integration).
-
-## <a name="prerequisites"></a>Requirements
-
-- Java 21+
-- [ANTLR](http://www.antlr.org/)
-- [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
-- [Google Guava](https://github.com/google/guava)
-- [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 3.0+)
 
 ## <a name="installation"></a>Installation
 
@@ -648,7 +639,7 @@ You can find an example of using Squiggly Filter in Dropwizard under the [exampl
 
 ## <a name="spring-boot-integration"></a>Spring Boot Integration
 
-The `squiggly-spring-boot-starter` provides zero-config integration for Spring Boot 4+ applications. It supports both Spring MVC (servlet) and Spring WebFlux (reactive).
+The `squiggly-spring-boot-starter` provides zero-config integration for Spring Boot 4+ applications. It supports both Spring MVC (servlet) and Spring WebFlux (reactive). When [Jackson XML](https://github.com/FasterXML/jackson-dataformat-xml) is on the classpath, XML responses are filtered automatically as well.
 
 ### Zero Configuration
 
