@@ -9,13 +9,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Spring Boot starter with auto-configuration for servlet and reactive
+- XML filtering support for reactive WebFlux applications
+- Startup info log when Squiggly auto-configuration is loaded
 - GitHub Actions CI workflow
 
 ### Changed
 
+- Rename Java packages from `com.github.bohnman.squiggly` to `co.ipregistry.squiggly`
+- Change Maven groupId from `com.github.ipregistry` to `co.ipregistry`
 - Migrate to Gradle build system
-- Upgrade to Jackson 3
+- Upgrade to Jackson 3.1
 - Require Java 21+
+- Invalid filter expressions now fall back to include-all instead of returning a 500 error
+
+### Fixed
+
+- XML codecs now coexist with JAXB in reactive WebFlux (registered as custom codecs)
 
 ### Removed
 
