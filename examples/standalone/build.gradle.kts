@@ -21,5 +21,5 @@ dependencies {
 }
 
 application {
-    mainClass = "com.github.bohnman.squiggly.examples.standalone.Application"
+    mainClass = "co.ipregistry.squiggly.examples.standalone.Application"
 }

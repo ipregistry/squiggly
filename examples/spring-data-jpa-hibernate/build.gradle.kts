@@ -4,7 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com.github.bohnman.squiggly.example"
+group = "co.ipregistry.squiggly.example"
 version = "1.0-SNAPSHOT"
 
 java {

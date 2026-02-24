@@ -2,9 +2,9 @@ package com.github.bohnman.examples.springdatarest;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
+import co.ipregistry.squiggly.Squiggly;
+import co.ipregistry.squiggly.web.RequestSquigglyContextProvider;
+import co.ipregistry.squiggly.web.SquigglyRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

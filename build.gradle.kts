@@ -49,7 +49,7 @@ sourceSets {
 }
 
 tasks.generateGrammarSource {
-    arguments = arguments + listOf("-visitor", "-no-listener", "-package", "com.github.bohnman.squiggly.parser.antlr4")
+    arguments = arguments + listOf("-visitor", "-no-listener", "-package", "co.ipregistry.squiggly.parser.antlr4")
     outputDirectory = file("src/generated/java")
 }
 

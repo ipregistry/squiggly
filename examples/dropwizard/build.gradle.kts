@@ -4,7 +4,7 @@ plugins {
     id("com.gradleup.shadow") version "9.3.1"
 }
 
-group = "com.github.bohnman.squiggly.example"
+group = "co.ipregistry.squiggly.example"
 version = "1.0-SNAPSHOT"
 
 java {
@@ -23,5 +23,5 @@ dependencies {
 }
 
 application {
-    mainClass = "com.github.bohnman.squiggly.examples.dropwizard.IssueApplication"
+    mainClass = "co.ipregistry.squiggly.examples.dropwizard.IssueApplication"
 }
