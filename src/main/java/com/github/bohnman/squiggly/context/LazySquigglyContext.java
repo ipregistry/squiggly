@@ -1,9 +1,11 @@
 package com.github.bohnman.squiggly.context;
 
+import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import net.jcip.annotations.NotThreadSafe;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,10 +30,17 @@ public class LazySquigglyContext implements SquigglyContext {
         return beanClass;
     }
 
+    private static final List<SquigglyNode> INCLUDE_ALL = Collections.singletonList(
+            new SquigglyNode(AnyDeepName.get(), Collections.emptyList(), false, false, false));
+
     @Override
     public List<SquigglyNode> getNodes() {
         if (nodes == null) {
-            nodes = parser.parse(filter);
+            try {
+                nodes = parser.parse(filter);
+            } catch (Exception e) {
+                nodes = INCLUDE_ALL;
+            }
         }
 
         return nodes;

@@ -480,6 +480,18 @@ public class SquigglyPropertyFilterTest {
         return builder.toString();
     }
 
+    @Test
+    public void testInvalidFilterReturnsFullObject() {
+        filter("connection,location2[2[e[2");
+        assertJsonEquals(stringifyRaw(), stringify());
+    }
+
+    @Test
+    public void testInvalidFilterUnclosedBracket() {
+        filter("a[b[c");
+        assertJsonEquals(stringifyRaw(), stringify());
+    }
+
     private static class DashObject {
 
         private String id;
