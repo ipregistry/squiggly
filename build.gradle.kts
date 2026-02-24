@@ -22,8 +22,8 @@ repositories {
 dependencies {
     antlr("org.antlr:antlr4:4.13.2")
 
-    api("tools.jackson.core:jackson-databind:3.0.4")
-    api("tools.jackson.dataformat:jackson-dataformat-xml:3.0.4")
+    api("tools.jackson.core:jackson-databind:3.1.0")
+    api("tools.jackson.dataformat:jackson-dataformat-xml:3.1.0")
 
     implementation("org.antlr:antlr4-runtime:4.13.2")
     implementation("org.apache.commons:commons-lang3:3.20.0")
@@ -33,8 +33,8 @@ dependencies {
 
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
 }
 
 sourceSets {

@@ -27,10 +27,10 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
     compileOnly("org.springframework:spring-webflux:7.0.5")
     compileOnly("io.micrometer:context-propagation:1.2.1")
-    compileOnly("tools.jackson.dataformat:jackson-dataformat-xml:3.0.4")
+    compileOnly("tools.jackson.dataformat:jackson-dataformat-xml:3.1.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.springframework.boot:spring-boot-test:4.0.3")
     testImplementation("org.springframework.boot:spring-boot-test-autoconfigure:4.0.3")
