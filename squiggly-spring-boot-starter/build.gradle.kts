@@ -27,6 +27,7 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
     compileOnly("org.springframework:spring-webflux:7.0.5")
     compileOnly("io.micrometer:context-propagation:1.2.1")
+    compileOnly("tools.jackson.dataformat:jackson-dataformat-xml:3.0.4")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
