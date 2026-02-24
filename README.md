@@ -53,14 +53,14 @@ If you are using Spring Boot 4+, just add the starter — no manual configuratio
 #### Gradle
 
 ```kotlin
-implementation("com.github.ipregistry:squiggly-spring-boot-starter:2.0.0")
+implementation("co.ipregistry:squiggly-spring-boot-starter:2.0.0")
 ```
 
 #### Maven
 
 ```xml
 <dependency>
-    <groupId>com.github.ipregistry</groupId>
+    <groupId>co.ipregistry</groupId>
     <artifactId>squiggly-spring-boot-starter</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -73,14 +73,14 @@ That's it. The starter auto-configures everything for both Spring MVC (servlet) 
 #### Gradle
 
 ```kotlin
-implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0")
+implementation("co.ipregistry:squiggly-filter-jackson:2.0.0")
 ```
 
 #### Maven
 
 ```xml
 <dependency>
-    <groupId>com.github.ipregistry</groupId>
+    <groupId>co.ipregistry</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
     <version>2.0.0</version>
 </dependency>

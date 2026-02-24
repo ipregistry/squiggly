@@ -19,5 +19,5 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.github.ipregistry:squiggly-spring-boot-starter:2.0.0-SNAPSHOT")
+    implementation("co.ipregistry:squiggly-spring-boot-starter:2.0.0-SNAPSHOT")
 }

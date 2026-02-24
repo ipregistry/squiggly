@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
+    implementation("co.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
 
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
 }

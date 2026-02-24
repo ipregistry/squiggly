@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
+    implementation("co.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
     implementation("io.dropwizard:dropwizard-core:4.0.17")
 }
 

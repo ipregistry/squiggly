@@ -21,7 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-rest")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.github.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
+    implementation("co.ipregistry:squiggly-filter-jackson:2.0.0-SNAPSHOT")
 
     runtimeOnly("com.h2database:h2")
 

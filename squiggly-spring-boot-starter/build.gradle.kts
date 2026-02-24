@@ -3,7 +3,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.github.ipregistry"
+group = "co.ipregistry"
 version = "2.0.0-SNAPSHOT"
 
 java {
@@ -47,7 +47,7 @@ tasks.test {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            groupId = "com.github.ipregistry"
+            groupId = "co.ipregistry"
             artifactId = "squiggly-spring-boot-starter"
 
             from(components["java"])

@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.github.ipregistry"
+group = "co.ipregistry"
 version = "2.0.0-SNAPSHOT"
 
 java {
@@ -69,7 +69,7 @@ tasks.named<Jar>("sourcesJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            groupId = "com.github.ipregistry"
+            groupId = "co.ipregistry"
             artifactId = "squiggly-filter-jackson"
 
             from(components["java"])
