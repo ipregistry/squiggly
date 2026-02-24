@@ -144,8 +144,14 @@ public class SquigglyAutoConfiguration {
                 public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
                     StreamSafeJacksonXmlEncoder xmlEncoder = new StreamSafeJacksonXmlEncoder(xmlMapper);
                     JacksonXmlDecoder xmlDecoder = new JacksonXmlDecoder(xmlMapper);
-                    configurer.defaultCodecs().jacksonXmlEncoder(xmlEncoder);
-                    configurer.defaultCodecs().jacksonXmlDecoder(xmlDecoder);
+                    // Register as custom codecs rather than default codecs because
+                    // Spring's BaseDefaultCodecs uses Jaxb2XmlEncoder when JAXB is on
+                    // the classpath and ignores the Jackson XML encoder entirely.
+                    // Custom codecs are appended after defaults, so Jackson XML will
+                    // handle types that Jaxb2XmlEncoder cannot encode (i.e. types
+                    // without JAXB annotations).
+                    configurer.customCodecs().registerWithDefaultConfig(xmlEncoder);
+                    configurer.customCodecs().registerWithDefaultConfig(xmlDecoder);
                 }
             };
         }
