@@ -22,19 +22,19 @@ repositories {
 dependencies {
     antlr("org.antlr:antlr4:4.13.2")
 
-    api("tools.jackson.core:jackson-databind:3.1.0")
-    api("tools.jackson.dataformat:jackson-dataformat-xml:3.1.0")
+    api("tools.jackson.core:jackson-databind:3.1.8")
+    api("tools.jackson.dataformat:jackson-dataformat-xml:3.1.8")
 
     implementation("org.antlr:antlr4-runtime:4.13.2")
-    implementation("org.apache.commons:commons-lang3:3.20.0")
-    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("org.apache.commons:commons-lang3:3.21.0")
+    implementation("com.google.guava:guava:33.8.0-jre")
     implementation("commons-beanutils:commons-beanutils:1.11.0")
     implementation("net.jcip:jcip-annotations:1.0")
 
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
 }
 
 sourceSets {
