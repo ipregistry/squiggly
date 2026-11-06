@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.1] - 2026-11-06
+
+### Changed
+
+- Upgrade to Jackson 3.1.8, the latest patch of the 3.1 LTS line Spring Boot 4.1 manages (Jackson 3.2 needs annotations 2.22, which Boot does not ship yet)
+- Build the starter against Spring Boot 4.1.2 and Spring Framework 7.0.10
+- Upgrade Guava 33.8.0 and commons-lang3 3.21.0
+
 ## [2.0.0] - 2026-02-24
 
 ### Added
