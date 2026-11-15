@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2] - 2026-11-15
+
+### Changed
+
+- Match field-filter regular expressions (`~…~`, `/…/`) and wildcards with RE2/J (`com.google.re2j`) instead of `java.util.regex`, so a filter matches in time linear in the input and cannot backtrack catastrophically on a crafted pattern
+
+### Note
+
+- RE2/J does not support constructs that require backtracking (backreferences, lookahead and lookbehind); such a pattern is now rejected when the filter is compiled and is treated like any other invalid filter
+
 ## [2.0.1] - 2026-11-06
 
 ### Changed
