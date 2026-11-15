@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "co.ipregistry"
-version = "2.0.1"
+version = "2.0.2"
 
 java {
     toolchain {
