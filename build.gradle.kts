@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "co.ipregistry"
-version = "2.0.1"
+version = "2.0.2"
 
 java {
     toolchain {
@@ -28,6 +28,9 @@ dependencies {
     implementation("org.antlr:antlr4-runtime:4.13.2")
     implementation("org.apache.commons:commons-lang3:3.21.0")
     implementation("com.google.guava:guava:33.8.0-jre")
+    // Linear-time regular expressions for field-name matching, so an untrusted
+    // fields= filter cannot backtrack catastrophically (RegexName, WildcardName).
+    implementation("com.google.re2j:re2j:1.8")
     implementation("commons-beanutils:commons-beanutils:1.11.0")
     implementation("net.jcip:jcip-annotations:1.0")
 

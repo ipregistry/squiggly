@@ -1,8 +1,15 @@
 package co.ipregistry.squiggly.name;
 
-import java.util.Set;
-import java.util.regex.Pattern;
+import com.google.re2j.Pattern;
 
+import java.util.Set;
+
+// RE2/J (com.google.re2j), not java.util.regex: it matches in time linear in the
+// input and cannot catastrophically backtrack, so a field filter coming from an
+// untrusted request can never hold a worker thread (e.g. a stacked-wildcard
+// pattern such as ~.*.*.*...x~). It rejects constructs that need backtracking
+// (backreferences, lookahead/lookbehind) at compile time with a
+// PatternSyntaxException, which is handled exactly like any other invalid filter.
 public class RegexName implements SquigglyName {
 
     private final String name;

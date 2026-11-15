@@ -1,9 +1,9 @@
 package co.ipregistry.squiggly.name;
 
+import com.google.re2j.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.regex.Pattern;
-
+// RE2/J, not java.util.regex: linear-time matching, see RegexName.
 public class WildcardName implements SquigglyName {
 
     private final String name;
